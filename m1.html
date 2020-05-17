@@ -1,0 +1,104 @@
+<!-- Code from d3-graph-gallery.com -->
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<!-- Load d3.js -->
+<script src="https://d3js.org/d3.v4.js"></script>
+
+<!-- Sliders -->
+<label for="sAngle">Angle</label>
+<input type="range" name="sAngle" id="sAngle" min="0" max="90" value="0" step="0.1">
+<label for="sDx">Δx</label>
+<input type="range" name="sDx" id="sDx" min="0" max="1" value="0" step="0.01">
+<label for="sDy">Δy</label>
+<input type="range" name="sDy" id="sDy" min="0" max="1" value="0" step="0.01">
+
+<!-- Create a div where the graph will take place -->
+<div id="screen"></div>
+
+<script>
+
+  var s3 = Math.sqrt(3);
+  var sq_lattice = { u : [1,0], v : [0,1], atoms:[[0,0]]};
+  var hex_lattice = { u : [1,0], v : [0.5,0.5*s3], atoms:[[0,0]]};
+  var kagome_lattice = { u : [2,0], v : [-1,s3],
+                         atoms:[
+                             [0,0],
+                             [0,s3],
+                             [.5,s3/2],
+                             [1,0],
+                         ]};
+  
+  // set the dimensions and margins of the graph
+  var margin = {top: 30, right: 30, bottom: 30, left: 50},
+      width = 1000 - margin.left - margin.right,
+      height = 800 - margin.top - margin.bottom;
+  
+  // append the svg object to the body of the page
+  var svg = d3.select("#screen")
+      .append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+      .attr("transform",
+            "translate(" + margin.left + "," + margin.top + ")");
+
+  function lattice(r,s, lat, sx,sy) {
+      let tgroup = svg.append("g");
+      let group = tgroup.append("g");
+      let ux = lat.u[0];
+      let uy = lat.u[1];
+      let vx = lat.v[0];
+      let vy = lat.v[1];
+      
+      tgroup.attr("transform","translate(" + (sx*r/2) + "," + (sy*r/2) + ")")
+          .attr("id","tg");
+      for(let i = -sx; i < sx; ++i){
+          for(let j = -sy; j < sy; ++j){
+              x = ux*i+vx*j;
+              y = uy*i+vy*j;
+
+              lat.atoms.forEach(atom => {
+                  group.append("circle")
+                      .style("stroke-opacity", 0)
+                      .style("fill", "black")
+                      .attr("r", s)
+                      .attr("cx",(x + atom[0]) * r)
+                      .attr("cy",(y + atom[1]) * r);
+              });
+          }
+      }
+      return group;
+  }
+
+  var r = 10;
+  
+  var background = lattice(r, 2, kagome_lattice, 80,80);
+  var foreground = lattice(r, 2, kagome_lattice, 80,80);      
+  
+  function updateChart(rot,dx,dy) {
+      foreground.attr("transform","rotate(" + rot + ") translate(" + dx*r + ", " + dy*r + ")");
+  }
+
+
+  var g_dx = 0;
+  var g_dy = 0;
+  var g_a = 0;
+  updateChart(g_a,g_dx,g_dy);
+  
+  // Listen to the sliders
+  d3.select("#sAngle").on("input", function(d){
+      g_a = this.value;
+      updateChart(g_a,g_dx,g_dy);
+  });
+  d3.select("#sDx").on("input", function(d){
+      g_dx = this.value;
+      updateChart(g_a,g_dx,g_dy);
+  });
+  d3.select("#sDy").on("input", function(d){
+      g_dy = this.value;
+      updateChart(g_a,g_dx,g_dy);
+  });
+
+
+</script>
